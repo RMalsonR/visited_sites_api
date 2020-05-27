@@ -18,6 +18,6 @@ from django.urls import path
 from core.views import *
 
 urlpatterns = [
-    path('visited_links/', LinkApiView.as_view(), namespace='post_visited_links'),
-    path('visited_domains/', DomainApiView.as_view(), namespace='get_visited_domains'),
+    path('visited_links/', LinkApiView.as_view(), name='post_visited_links'),
+    path('visited_domains/', DomainApiView.as_view(), name='get_visited_domains'),
 ]

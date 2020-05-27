@@ -1,2 +1,12 @@
 # visited_sites_api
-Initial
+Первоначальная настройка:  
+* Должен быть установлен Redis
+* Миграции  
+``
+python migrate.py
+``  
+* Установка всех необходимых пакетов  
+``pip install -r requirements.txt``
+* Установить необходимые значения `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB_INDEX`  
+ в `visited_sites_api/settings.py`  
+
