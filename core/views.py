@@ -20,7 +20,7 @@ def validate_data(data: dict):
             return Response(data={'status': 'expected `str` link, not `{}`'.format(type(link))},
                             status=status.HTTP_400_BAD_REQUEST)
         if not link.startswith(('http://', 'https://')):
-            if re.fullmatch(r'(\w+.?)*', link) is None:
+            if re.fullmatch(r'(\w+.?)*', link) is None or link.find('.') < 0:
                 return Response(data={'status': 'data must contains only links'}, status=status.HTTP_400_BAD_REQUEST)
     return Response(data=links, status=200)
 
@@ -30,10 +30,11 @@ def validate_filter(filter_params: dict):
     try:
         validate_res['from'] = datetime.strptime(validate_res['from'][0], '%Y-%m-%d')
         validate_res['to'] = datetime.strptime(validate_res['to'][0], '%Y-%m-%d')
-    except KeyError as e:
-        return Response(data={'status': 'missing requirement filter argument `{}`'.format(e.args[0])},
+    except (KeyError, ValueError) as e:
+        return Response(data={'status': 'Missing requirement filter argument or invalid date format. More in extra',
+                              'extra': '`{}`'.format(e)},
                         status=status.HTTP_400_BAD_REQUEST)
-    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(validate_res['from'].date())) or\
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(validate_res['from'].date())) or \
             not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(validate_res['from'].date())):
         return Response(data={'status': 'filter parameters must in format like `YYYY-mm-dd`'},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -46,7 +47,11 @@ class DomainApiView(APIView):
         if validator.status_code is not 200:
             return validator
         qs = Link.filter_qs(validator.data)
-        return Response(data={'domains': list(set([link.link for link in qs]))}, status=status.HTTP_200_OK)
+        if len(qs) == 0:
+            return Response(data={'status': 'Does not match query with yours parameters'},
+                            status=status.HTTP_204_NO_CONTENT)
+        return Response(data={'domains': list(set([link.link for link in qs])), 'status': 'ok'},
+                        status=status.HTTP_200_OK)
 
 
 class LinkApiView(APIView):
